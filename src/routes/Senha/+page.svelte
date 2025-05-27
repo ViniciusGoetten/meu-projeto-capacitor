@@ -1,156 +1,221 @@
 <script>
-	let tamanho = 12,
-		qnt = 1;
-	let maius = true,
-		minus = true,
-		num = true,
-		simb = true;
-	let senhas = [];
+	import { onMount } from 'svelte';
+	import Modal from '$lib/components/Modal.svelte';
+	import Toast from '$lib/components/Toast.svelte';
+	import ToDoList from '$lib/components/ToDoList.svelte';
+	import * as bootstrap from 'bootstrap';
+	import { flip } from 'svelte/animate';
 
-	const chars = {
-		maius: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-		minus: 'abcdefghijklmnopqrstuvwxyz',
-		num: '0123456789',
-		simb: '!@#$%&*'
-	};
+	let novaTarefa = $state('');
+	let tarefas = $state([]);
+	let tarefasPendentes = $derived(tarefas.filter((tarefa) => tarefa.status == 0));
+	let tarefasConcluidas = $derived(tarefas.filter((tarefa) => tarefa.status == 1));
+	let conteudoTarefaEditando = $state('');
+	let tarefaEditando = $state();
+	let tarefaExcluindo;
+	let mensagemToast;
+	let exibir = $state('2');
+	let busca = $state('');
 
-	function gerar() {
-		let pool = '';
-		if (maius) pool += chars.maius;
-		if (minus) pool += chars.minus;
-		if (num) pool += chars.num;
-		if (simb) pool += chars.simb;
-		if (!pool) return (senhas = []);
+	let dropdownOpen = false;
 
-		senhas = Array.from({ length: qnt }, () =>
-			Array.from({ length: tamanho }, () => pool[Math.floor(Math.random() * pool.length)]).join('')
-		);
+	async function adicionarTarefa() {
+		novaTarefa = novaTarefa.trim();
+		if (!novaTarefa) {
+			mensagemToast.show();
+			return;
+		}
+		tarefas.push({ conteudo: novaTarefa, status: 0 });
+		novaTarefa = '';
 	}
 
-	const copiar = (s) => navigator.clipboard.writeText(s).then(() => alert('Senha copiada!'));
+	function editarTarefa(tarefa) {
+		tarefaEditando = tarefa;
+		conteudoTarefaEditando = tarefa.conteudo;
+	}
+
+	function confirmarEdicao() {
+		if (!conteudoTarefaEditando) {
+			mensagemToast.show();
+			return;
+		} else {
+			tarefaEditando.conteudo = conteudoTarefaEditando;
+			tarefaEditando = null;
+			conteudoTarefaEditando = '';
+		}
+	}
+
+	function cancelarEdicao() {
+		tarefaEditando = undefined;
+	}
+
+	function excluirTarefa(tarefa) {
+		tarefaExcluindo = tarefa;
+	}
+
+	function confirmarExclusao() {
+		if (tarefaExcluindo) {
+			tarefas = tarefas.filter((tarefa) => tarefa !== tarefaExcluindo);
+			tarefaExcluindo = undefined;
+		}
+	}
+
+	function alterarStatus(tarefa, status) {
+		tarefa.status = status;
+	}
+
+	function alltasksdone() {
+		tarefas.forEach((tarefa) => {
+			tarefa.status = 1;
+		});
+	}
+
+	function alltasksundone() {
+		tarefas.forEach((tarefa) => {
+			tarefa.status = 0;
+		});
+	}
+
+	onMount(() => {
+		mensagemToast = new bootstrap.Toast('#mensagemToast');
+	});
+
+	function buscarTarefas() {
+		return tarefas.filter(tarefa => tarefa.conteudo.toLowerCase().includes(busca.toLowerCase()));
+	}
 </script>
 
-<div class="box">
-	<h1>Gerador de Senhas</h1>
-
-	<label>Tamanho: {tamanho}</label>
-	<input type="range" min="5" max="30" bind:value={tamanho} />
-
-	<label>Quantidade de Senha: {qnt}</label>
-	<input type="number" min="1" max="10" bind:value={qnt} />
-
-	<div class="checks">
-		<label><input type="checkbox" bind:checked={maius} /> Maiúsculas</label>
-		<label><input type="checkbox" bind:checked={minus} /> Minúsculas</label>
-		<label><input type="checkbox" bind:checked={num} /> Números</label>
-		<label><input type="checkbox" bind:checked={simb} /> Símbolos</label>
-	</div>
-
-	<button on:click={gerar}> Gerar</button>
-
-	{#if senhas.length}
-		<div class="resultado">
-			{#each senhas as s}
-				<div class="senha">
-					<span>{s}</span>
-					<button on:click={() => copiar(s)}>📋</button>
-				</div>
-			{/each}
-		</div>
-	{/if}
-</div>
-
 <style>
-	.box {
-
-		background: #99c6f5;
-		padding: 20px;
-		border-radius: 16px;
-		max-width: 400px;
-		margin: auto;
-		font-family: Georgia, 'Times New Roman', Times, serif;
-		color: #003366;
-		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-	}
-
-	h1 {
-		text-align: center;
-		color: #005c99;
-		margin-bottom: 20px;
-		font-size: 24px;
-	}
-
-	label {
-		display: block;
-		margin: 10px 0 5px;
-		font-weight: 600;
-	}
-
-	input[type='range'],
-	input[type='number'] {
+	/* Ajustes para o dropdown */
+	.dropdown-menu.show {
+		display: block !important;
+		position: static !important;
+		float: none;
 		width: 100%;
-		padding: 8px;
-		border-radius: 8px;
-		border: 1px solid #3399cc;
-		background: #ffffff;
-		box-sizing: border-box;
-	}
-
-	.checks label {
-		margin: 5px 0;
-		display: block;
-	}
-
-	button {
-		background: #3399cc;
-		color: #fff;
-		padding: 12px;
-		width: 100%;
+		margin-top: 0;
 		border: none;
-		border-radius: 10px;
-		font-size: 16px;
-		margin-top: 15px;
-		cursor: pointer;
-		transition: 0.3s;
-	}
-	button:hover {
-		background: #267399;
+		box-shadow: none;
+		padding: 0.5rem 1rem;
+		text-align: center;
 	}
 
-	.resultado {
-		margin-top: 20px;
-		background: #cce6ff;
-		padding: 15px;
-		border-radius: 12px;
+	.dropdown-menu li {
+		list-style: none;
+		margin-bottom: 0.5rem;
 	}
 
-	.senha {
-		background: #b3d9ff;
-		padding: 10px;
-		border-radius: 8px;
-		margin-bottom: 10px;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
+	.dropdown-menu select,
+	.dropdown-menu button {
+		width: 100%;
 	}
 
-	.senha span {
-		font-weight: bold;
-		color: #003366;
-		word-break: break-word;
+	/* Espaçamento dos badges */
+	.badge {
+		margin-right: 0.5rem;
 	}
 
-	.senha button {
-    background: #66b3ff;
-    padding: 3px 8px;
-    border-radius: 3px;
-    color: #fff;
-    font-size: 11px;
-    border: none;
-    cursor: pointer;
-    width: 150px; 
-}
-	.senha button:hover {
-		background: #3399cc;
+	/* Container do dropdown para largura completa */
+	.dropdown {
+		width: 100%;
+		text-align: center;
 	}
 </style>
+
+<div class="fixed-top pt-5" style="z-index: 1020;">
+	<form class="container-fluid input-group px-4 pt-3" on:submit|preventDefault={adicionarTarefa}>
+		<input
+			class="form-control form-control-lg"
+			placeholder="Nova tarefa"
+			bind:value={novaTarefa}
+		/>
+		<button type="submit" class="btn btn-primary input-group-text" aria-label="adicionar">
+			<i class="bi bi-plus-lg"></i>
+		</button>
+	</form>
+	<Toast msg={'Digite algo!'} />
+</div>
+
+<form>
+	<div class="container-fluid mt-5 pt-4">
+		<input class="form-control form-control-lg" placeholder="Busca" bind:value={busca} />
+		<br />
+		<div class="dropdown">
+			<button
+				class="btn btn-secondary"
+				type="button"
+				aria-expanded={dropdownOpen}
+				style="width: 100%;"
+				on:click={() => dropdownOpen = !dropdownOpen}
+			>
+				Configurações
+			</button>
+
+			{#if dropdownOpen}
+				<ul class="dropdown-menu show">
+					<li>Quais tarefas exibir?</li>
+					<li>
+						<select name="exibir" id="pet-select" bind:value={exibir}>
+							<option value="0">Pendentes</option>
+							<option value="1">Concluídas</option>
+							<option value="2">Todas</option>
+						</select>
+					</li>
+					<li>
+						<button type="button" on:click={alltasksdone} style="border-radius: 10px;">
+							Todas tarefas concluidas
+						</button>
+					</li>
+					<li>
+						<button type="button" on:click={alltasksundone} style="border-radius: 10px;">
+							Todas tarefas pendentes
+						</button>
+					</li>
+					<li>
+						<span class="badge text-bg-secondary">Totais: {tarefas.length}</span>
+						<span class="badge text-bg-warning">Pendentes: {tarefasPendentes.length}</span>
+						<span class="badge text-bg-success">Concluídas: {tarefasConcluidas.length}</span>
+					</li>
+				</ul>
+			{/if}
+		</div>
+
+		<br />
+
+		{#if exibir == '0'}
+			<ToDoList
+				tarefas={buscarTarefas().filter(tarefa => tarefa.status == 0)}
+				{tarefaEditando}
+				bind:conteudoTarefaEditando
+				{editarTarefa}
+				{confirmarEdicao}
+				{cancelarEdicao}
+				{alterarStatus}
+				{excluirTarefa}
+			/>
+		{:else if exibir == '1'}
+			<ToDoList
+				tarefas={buscarTarefas().filter(tarefa => tarefa.status == 1)}
+				{tarefaEditando}
+				bind:conteudoTarefaEditando
+				{editarTarefa}
+				{confirmarEdicao}
+				{cancelarEdicao}
+				{alterarStatus}
+				{excluirTarefa}
+			/>
+		{:else if exibir == '2'}
+			<ToDoList
+				tarefas={buscarTarefas()}
+				{tarefaEditando}
+				bind:conteudoTarefaEditando
+				{editarTarefa}
+				{confirmarEdicao}
+				{cancelarEdicao}
+				{alterarStatus}
+				{excluirTarefa}
+			/>
+		{/if}
+	</div>
+
+	<Modal msg={'Deseja excluir a tarefa?'} acao={confirmarExclusao} />
+</form>
