@@ -1,5 +1,5 @@
 <script>
-    import { dicionario } from '$lib/dicio/dicionario.js';
+        import { dicionario } from '$lib/dicio/dicionario';
 
     let palavra = ''; 
     let filtradas = dicionario; 
