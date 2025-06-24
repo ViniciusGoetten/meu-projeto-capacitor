@@ -9,7 +9,7 @@
         <li class="nav-item"><a class="nav-link active" href="/Senha">Gerador de Senhas</a></li>
         <li class="nav-item"><a class="nav-link active" href="/ConversorUni">Conversor de Unidades</a></li>
         <li class="nav-item"><a class="nav-link active" href="/Calculadorafeita">Calculadora</a></li>
-        
+        <li class="nav-item"><a class="nav-link active" href="/Dicionario">Dicionario</a></li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="/" role="button" data-bs-toggle="dropdown">Dropdown</a>
           <ul class="dropdown-menu">
