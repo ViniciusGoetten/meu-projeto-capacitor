@@ -1,36 +1,36 @@
 <script>
-        import { dicionario } from '$lib/dicio/dicionario';
+     import { dicionario } from '$lib/dicio/dicionario.js';
 
-    let palavra = ''; 
-    let filtradas = dicionario; 
+     let palavra = '';
+     let filtradas = dicionario;
 
-    function buscar() {
-        if (palavra === '') {
-            filtradas = dicionario; 
+     function buscar() {
+        if (palavra ===  '') {
+            filtradas = dicionario;
             return;
         }
 
         filtradas = dicionario.filter(termo =>
-  termo.palavra.toLowerCase().includes(palavra.toLowerCase())
-);
+    termo.palavra.toLowerCase().includes(palavra.toLowerCase())
+        );
 
-    }
-</script>
+     }
+ </script>
 
-<div>
-    <input 
-        placeholder="Digite uma palavra" 
-        oninput={buscar} 
-        bind:value={palavra} 
-    />
-</div>
+    <div>
+        <input  
+           placeholder="Digite uma palavra"
+           oninput={buscar}
+           bind:value={palavra}
+        />
+    </div>
 
-<div>
-    <ol>
-        {#each filtradas as termo}
-            <li>
-                <a href="/dicionario/{termo.palavra}">{termo.palavra}</a>
-            </li>
-        {/each}
-    </ol>
-</div>
+    <div>
+        <ol>
+             {#each filtradas as termo}
+               <li>
+                 <a href="/dicionario/{termo.palavra}">{termo.palavra}</a>
+               </li>
+            {/each}
+        </ol>
+    </div>

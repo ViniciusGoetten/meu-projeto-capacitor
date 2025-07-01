@@ -1,50 +1,82 @@
 <script>
-    import { onMount } from 'svelte';
-    import Modal from '$lib/components/Modal.svelte';
-    import Toast from '$lib/components/Toast.svelte';
-    import ToDoList from '$lib/components/ToDoList.svelte';
-    import * as bootstrap from 'bootstrap';
+  const tarefasAFazer = $state(['Amor', 'arrumar um amor', 'comprar chocolate pro meu amor', 'fazer compras pro meu amor', 'estudar para prova para dar um futuro pro meu amor']);
+  const tarefasConcluidas = $state([]);
+  let tarefaNova = $state('');
+  let tarefaEditandoIndice = $state(null);
+  let tarefaEditando = $state('');
+
+  function adicionarTarefa() {
+      if (tarefaNova.trim()) {
+          tarefasAFazer.push(tarefaNova);
+          tarefaNova = '';
+      }
+  }
+
+  function excluirTarefa(i, lista) {
+      lista.splice(i, 1);
+  }
+
+  function editarTarefa(i, lista) {
+      tarefaEditandoIndice = i;
+      tarefaEditando = lista[i];
+  }
+
+  function salvarTarefa(i, lista) {
+      lista[i] = tarefaEditando.trim();
+      tarefaEditandoIndice = null;
+  }
+
+  function cancelarEdicao() {}
   
-    let novaTarefa = $state('');
-    let tarefas = $state([]);
-    let tarefasPendentes = $derived(tarefas.filter(tarefa => tarefa.status == 0));
-    let tarefasConcluidas = $derived(tarefas.filter(tarefa => tarefa.status == 1));
-    let conteudoTarefaEditando = $state('');
-    let tarefaEditando = $state();
-    let tarefaExcluindo;
-    let mensagemToast;
-  
-    async function adicionarTarefa() {}
-  
-    function editarTarefa(tarefa) {}
-  
-    function confirmarEdicao() {}
-  
-    function cancelarEdicao() {}
-  
-    function excluirTarefa(tarefa) {}
-  
-    function confirmarExclusao() {}
-  
-    function alterarStatus(tarefa, status) {}
-  
-    onMount(() => {
-      mensagemToast = new bootstrap.Toast('#mensagemToast');
-    });
-  </script>
-  
-  <div class="fixed-top pt-5" style="z-index: 1020;">
-    <form class="container-fluid input-group px-4 pt-3" onsubmit={adicionarTarefa}>
-      <input class="form-control form-control-lg" placeholder="Nova tarefa" bind:value={novaTarefa} />
-      <button type="submit" class="btn btn-primary input-group-text" aria-label="adicionar"> <i class="bi bi-plus-lg"></i> </button>
-    </form>
-    <Toast msg={'Digite algo!'} />
-  </div>
-  
-  <div class="container-fluid mt-5 pt-3">
-    <ToDoList tarefas={tarefasPendentes} {tarefaEditando} bind:conteudoTarefaEditando {editarTarefa} {confirmarEdicao} {cancelarEdicao} {alterarStatus} {excluirTarefa} />
-    <hr />
-    <ToDoList tarefas={tarefasConcluidas} {tarefaEditando} bind:conteudoTarefaEditando {editarTarefa} {confirmarEdicao} {cancelarEdicao} {alterarStatus} {excluirTarefa} />
-  </div>
-  
-  <Modal msg={'Deseja excluir a tarefa?'} acao={confirmarExclusao} />
+  function marcarComoConcluida(i) {
+      const tarefaConcluida = tarefasAFazer[i];
+      tarefasAFazer.splice(i, 1);
+      tarefasConcluidas.push(tarefaConcluida);
+  }
+
+  function desmarcarComoConcluida(i) {
+      const tarefa = tarefasConcluidas[i];
+      tarefasConcluidas.splice(i, 1);
+      tarefasAFazer.push(tarefa);
+  }
+</script>
+
+<h2>Lista de tarefas a fazer</h2>
+<p>
+  <input placeholder="Digite a tarefa..." bind:value={tarefaNova} />
+  <button onclick={adicionarTarefa}>➕</button>
+</p>
+<ul>
+  {#each tarefasAFazer as tarefa, i}
+      <li>
+          {#if tarefaEditandoIndice == i}
+              <input bind:value={tarefaEditando} />
+              <button onclick={() => salvarTarefa(i, tarefasAFazer)}>💾</button>
+              <button onclick={cancelarEdicao}>❌</button>
+          {:else}
+              {tarefa}
+              <button onclick={() => editarTarefa(i, tarefasAFazer)}>✏</button>
+              <button onclick={() => excluirTarefa(i, tarefasAFazer)}>🗑</button>
+              <button onclick={() => marcarComoConcluida(i)}>✔️</button>
+          {/if}
+      </li>
+  {/each}
+</ul>
+
+<h2>Tarefas concluídas</h2>
+<ul>
+  {#each tarefasConcluidas as tarefa, i}
+      <li>
+          {#if tarefaEditandoIndice == i}
+              <input bind:value={tarefaEditando} />
+              <button onclick={() => salvarTarefa(i, tarefasConcluidas)}>💾</button>
+              <button onclick={cancelarEdicao}>❌</button>
+          {:else}
+              {tarefa}
+              <button onclick={() => editarTarefa(i, tarefasConcluidas)}>✏</button>
+              <button onclick={() => excluirTarefa(i, tarefasConcluidas)}>🗑</button>
+              <button onclick={() => desmarcarComoConcluida(i)}>↩️</button>
+          {/if}
+      </li>
+  {/each}
+</ul>

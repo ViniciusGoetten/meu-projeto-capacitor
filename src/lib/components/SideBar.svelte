@@ -7,9 +7,14 @@
       <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
         <li class="nav-item"><a class="nav-link active" href="/todolist">Lista de Tarefas</a></li>
         <li class="nav-item"><a class="nav-link active" href="/Senha">Gerador de Senhas</a></li>
-        <li class="nav-item"><a class="nav-link active" href="/ConversorUni">Conversor de Unidades</a></li>
         <li class="nav-item"><a class="nav-link active" href="/Calculadorafeita">Calculadora</a></li>
-        <li class="nav-item"><a class="nav-link active" href="/Dicionario">Dicionario</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/dicionario">Dicionario</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/ConversorUni">Conversor de Unidades</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/unidades">Conversor de Unidades 2</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/aleatoriasenha">Gerador de Senhas 2</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/todeslist">Lista de Tarefas 2</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/Moeda">Conversor de Moeda</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/calculadora">Calculadora</a></li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="/" role="button" data-bs-toggle="dropdown">Dropdown</a>
           <ul class="dropdown-menu">

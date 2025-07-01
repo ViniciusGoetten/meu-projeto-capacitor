@@ -1,221 +1,143 @@
 <script>
-	import { onMount } from 'svelte';
-	import Modal from '$lib/components/Modal.svelte';
-	import Toast from '$lib/components/Toast.svelte';
-	import ToDoList from '$lib/components/ToDoList.svelte';
-	import * as bootstrap from 'bootstrap';
-	import { flip } from 'svelte/animate';
-
-	let novaTarefa = $state('');
-	let tarefas = $state([]);
-	let tarefasPendentes = $derived(tarefas.filter((tarefa) => tarefa.status == 0));
-	let tarefasConcluidas = $derived(tarefas.filter((tarefa) => tarefa.status == 1));
-	let conteudoTarefaEditando = $state('');
-	let tarefaEditando = $state();
-	let tarefaExcluindo;
-	let mensagemToast;
-	let exibir = $state('2');
-	let busca = $state('');
-
-	let dropdownOpen = false;
-
-	async function adicionarTarefa() {
-		novaTarefa = novaTarefa.trim();
-		if (!novaTarefa) {
-			mensagemToast.show();
-			return;
+	let tamanho = 10;
+	let quantidade = 1;
+	let senhas = [];
+  
+	const caracteres = {
+	  maiusculas: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+	  minusculas: 'abcdefghijklmnopqrstuvwxyz',
+	  simbolos: '!@#$%^&*()_+[]{}|;:,.<>?',
+	  digitos: '0123456789',
+	};
+  
+	function gerarSenha() {
+	  let caracteresDisponiveis = '';
+	  if (document.getElementById('maiusculas').checked) caracteresDisponiveis += caracteres.maiusculas;
+	  if (document.getElementById('minusculas').checked) caracteresDisponiveis += caracteres.minusculas;
+	  if (document.getElementById('simbolos').checked) caracteresDisponiveis += caracteres.simbolos;
+	  if (document.getElementById('digitos').checked) caracteresDisponiveis += caracteres.digitos;
+  
+	  if (!caracteresDisponiveis) {
+		alert('Selecione pelo menos um tipo de caractere!');
+		return;
+	  }
+  
+	  senhas = [];
+  
+	  for (let j = 0; j < quantidade; j++) {
+		let senha = '';
+		for (let i = 0; i < tamanho; i++) {
+		  const index = Math.floor(Math.random() * caracteresDisponiveis.length);
+		  senha += caracteresDisponiveis[index];
 		}
-		tarefas.push({ conteudo: novaTarefa, status: 0 });
-		novaTarefa = '';
+		senhas.push(senha);
+	  }
 	}
-
-	function editarTarefa(tarefa) {
-		tarefaEditando = tarefa;
-		conteudoTarefaEditando = tarefa.conteudo;
+  
+	async function copiarSenha(texto) {
+	  try {
+		await navigator.clipboard.writeText(texto);
+		alert('Senha copiada!');
+	  } catch (err) {
+		alert('Erro ao copiar senha: ' + err);
+	  }
 	}
-
-	function confirmarEdicao() {
-		if (!conteudoTarefaEditando) {
-			mensagemToast.show();
-			return;
-		} else {
-			tarefaEditando.conteudo = conteudoTarefaEditando;
-			tarefaEditando = null;
-			conteudoTarefaEditando = '';
-		}
-	}
-
-	function cancelarEdicao() {
-		tarefaEditando = undefined;
-	}
-
-	function excluirTarefa(tarefa) {
-		tarefaExcluindo = tarefa;
-	}
-
-	function confirmarExclusao() {
-		if (tarefaExcluindo) {
-			tarefas = tarefas.filter((tarefa) => tarefa !== tarefaExcluindo);
-			tarefaExcluindo = undefined;
-		}
-	}
-
-	function alterarStatus(tarefa, status) {
-		tarefa.status = status;
-	}
-
-	function alltasksdone() {
-		tarefas.forEach((tarefa) => {
-			tarefa.status = 1;
-		});
-	}
-
-	function alltasksundone() {
-		tarefas.forEach((tarefa) => {
-			tarefa.status = 0;
-		});
-	}
-
-	onMount(() => {
-		mensagemToast = new bootstrap.Toast('#mensagemToast');
-	});
-
-	function buscarTarefas() {
-		return tarefas.filter(tarefa => tarefa.conteudo.toLowerCase().includes(busca.toLowerCase()));
-	}
-</script>
-
-<style>
-	/* Ajustes para o dropdown */
-	.dropdown-menu.show {
-		display: block !important;
-		position: static !important;
-		float: none;
-		width: 100%;
-		margin-top: 0;
-		border: none;
-		box-shadow: none;
-		padding: 0.5rem 1rem;
-		text-align: center;
-	}
-
-	.dropdown-menu li {
-		list-style: none;
-		margin-bottom: 0.5rem;
-	}
-
-	.dropdown-menu select,
-	.dropdown-menu button {
-		width: 100%;
-	}
-
-	/* Espaçamento dos badges */
-	.badge {
-		margin-right: 0.5rem;
-	}
-
-	/* Container do dropdown para largura completa */
-	.dropdown {
-		width: 100%;
-		text-align: center;
-	}
-</style>
-
-<div class="fixed-top pt-5" style="z-index: 1020;">
-	<form class="container-fluid input-group px-4 pt-3" on:submit|preventDefault={adicionarTarefa}>
-		<input
-			class="form-control form-control-lg"
-			placeholder="Nova tarefa"
-			bind:value={novaTarefa}
-		/>
-		<button type="submit" class="btn btn-primary input-group-text" aria-label="adicionar">
-			<i class="bi bi-plus-lg"></i>
-		</button>
-	</form>
-	<Toast msg={'Digite algo!'} />
-</div>
-
-<form>
-	<div class="container-fluid mt-5 pt-4">
-		<input class="form-control form-control-lg" placeholder="Busca" bind:value={busca} />
-		<br />
-		<div class="dropdown">
-			<button
-				class="btn btn-secondary"
-				type="button"
-				aria-expanded={dropdownOpen}
-				style="width: 100%;"
-				on:click={() => dropdownOpen = !dropdownOpen}
-			>
-				Configurações
-			</button>
-
-			{#if dropdownOpen}
-				<ul class="dropdown-menu show">
-					<li>Quais tarefas exibir?</li>
-					<li>
-						<select name="exibir" id="pet-select" bind:value={exibir}>
-							<option value="0">Pendentes</option>
-							<option value="1">Concluídas</option>
-							<option value="2">Todas</option>
-						</select>
-					</li>
-					<li>
-						<button type="button" on:click={alltasksdone} style="border-radius: 10px;">
-							Todas tarefas concluidas
-						</button>
-					</li>
-					<li>
-						<button type="button" on:click={alltasksundone} style="border-radius: 10px;">
-							Todas tarefas pendentes
-						</button>
-					</li>
-					<li>
-						<span class="badge text-bg-secondary">Totais: {tarefas.length}</span>
-						<span class="badge text-bg-warning">Pendentes: {tarefasPendentes.length}</span>
-						<span class="badge text-bg-success">Concluídas: {tarefasConcluidas.length}</span>
-					</li>
-				</ul>
-			{/if}
-		</div>
-
-		<br />
-
-		{#if exibir == '0'}
-			<ToDoList
-				tarefas={buscarTarefas().filter(tarefa => tarefa.status == 0)}
-				{tarefaEditando}
-				bind:conteudoTarefaEditando
-				{editarTarefa}
-				{confirmarEdicao}
-				{cancelarEdicao}
-				{alterarStatus}
-				{excluirTarefa}
-			/>
-		{:else if exibir == '1'}
-			<ToDoList
-				tarefas={buscarTarefas().filter(tarefa => tarefa.status == 1)}
-				{tarefaEditando}
-				bind:conteudoTarefaEditando
-				{editarTarefa}
-				{confirmarEdicao}
-				{cancelarEdicao}
-				{alterarStatus}
-				{excluirTarefa}
-			/>
-		{:else if exibir == '2'}
-			<ToDoList
-				tarefas={buscarTarefas()}
-				{tarefaEditando}
-				bind:conteudoTarefaEditando
-				{editarTarefa}
-				{confirmarEdicao}
-				{cancelarEdicao}
-				{alterarStatus}
-				{excluirTarefa}
-			/>
-		{/if}
+  </script>
+  
+  <main>
+	<h1>Gerador de Senha</h1>
+  
+	<div>
+	  <label>Tamanho da senha: </label>
+	  <input
+		type="range"
+		min="1"
+		max="20"
+		bind:value={tamanho}
+	  />
+	  <span>{tamanho}</span>
 	</div>
-
-	<Modal msg={'Deseja excluir a tarefa?'} acao={confirmarExclusao} />
-</form>
+  
+	<div>
+	  <label><input type="checkbox" id="maiusculas" checked /> Letras Maiúsculas</label><br />
+	  <label><input type="checkbox" id="minusculas" checked /> Letras Minúsculas</label><br />
+	  <label><input type="checkbox" id="simbolos" /> Símbolos</label><br />
+	  <label><input type="checkbox" id="digitos" /> Números</label>
+	</div>
+  
+	<div>
+	  <label>Quantidade de senhas: </label>
+	  <input type="number" min="1" max="10" bind:value={quantidade} />
+	</div>
+  
+	<button on:click={gerarSenha}>Gerar Senha</button>
+  
+	<div id="resultado" style="margin-top: 20px;">
+	  {#each senhas as senha, index}
+		<div style="margin-bottom: 10px;">
+		  <input type="text" readonly value={senha} style="width: 80%; padding: 5px; margin-right: 10px; border-radius: 5px; border: 1px solid #ccc;" />
+		  <button on:click={() => copiarSenha(senha)} style="padding: 5px 10px; border-radius: 5px; background-color: #007bff; color: white; border: none; cursor: pointer;">
+			Copiar
+		  </button>
+		</div>
+	  {/each}
+	</div>
+  </main>
+  
+  <style>
+	main {
+	  text-align: center;
+	  padding: 20px;
+	  font-family: Arial, sans-serif;
+	  background-image: url('Brasil-x-Argentina-07-Adriano-comemora-1578x1920.webp');
+	  background-size: cover;
+	  background-position: center;
+	  max-width: 400px;
+	  margin: auto;
+	  border-radius: 10px;
+	  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	  color: white;
+	}
+  
+	h1 {
+	  font-size: 1.5em;
+	  margin-bottom: 20px;
+	  text-shadow: 1px 1px 3px #000;
+	}
+  
+	div {
+	  margin: 15px 0;
+	  text-align: left;
+	}
+  
+	label {
+	  font-size: 0.9em;
+	}
+  
+	input[type='range'] {
+	  width: 70%;
+	}
+  
+	input[type='number'] {
+	  width: 60px;
+	  padding: 5px;
+	  border-radius: 5px;
+	  border: 1px solid #ccc;
+	}
+  
+	button {
+	  padding: 10px 20px;
+	  background-color: #09eb7a;
+	  color: rgb(223, 0, 0);
+	  border: none;
+	  border-radius: 5px;
+	  cursor: pointer;
+	  margin-top: 10px;
+	  transition: background-color 0.3s ease;
+	}
+  
+	button:hover {
+	  background-color: #fc0000;
+	  color: white;
+	}
+  </style>
